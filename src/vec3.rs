@@ -1,6 +1,6 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
-pub type Point = Vec3;
+pub type Point3 = Vec3;
 pub type Color = Vec3;
 
 #[allow(dead_code)]
@@ -129,6 +129,14 @@ impl Mul<f64> for Vec3 {
 
     fn mul(self, rhs: f64) -> Self::Output {
         Vec3::new(self.x() * rhs, self.y() * rhs, self.z() * rhs)
+    }
+}
+
+impl Mul<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Vec3) -> Self::Output {
+        rhs * self
     }
 }
 

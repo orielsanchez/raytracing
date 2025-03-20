@@ -1,10 +1,15 @@
+pub mod ray;
 pub mod vec3;
 use std::fmt::Write as FmtWrite;
 use std::io::Write;
 
+use ray::Ray;
+use vec3::Color;
 
-
-pub fn write_color<T: Write>(out: &mut T, pixel_color: &vec3::Color) -> Result<usize, std::io::Error> {
+pub fn write_color<T: Write>(
+    out: &mut T,
+    pixel_color: &vec3::Color,
+) -> Result<usize, std::io::Error> {
     let mut str = String::new();
 
     let r = pixel_color.x();
@@ -18,4 +23,10 @@ pub fn write_color<T: Write>(out: &mut T, pixel_color: &vec3::Color) -> Result<u
     writeln!(str, "{} {} {}", rbyte, gbyte, bbyte).expect("Error formatting write");
 
     out.write(str.as_bytes())
+}
+
+pub fn ray_color(r: &Ray) -> Color {
+    let unit_direction = r.direction().unit_vector();
+    let a = (unit_direction.y() + 1.0) * 0.5;
+    (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
 }
