@@ -1,4 +1,4 @@
-use std::ops::{AddAssign, DivAssign, Index, IndexMut, MulAssign, Neg};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -12,7 +12,7 @@ impl Vec3 {
     }
 
     pub fn default() -> Self {
-        Vec3 { e: [0.0, 0.0, 0.0] }
+        Vec3::new(0.0, 0.0, 0.0)
     }
 
     pub fn x(&self) -> f64 {
@@ -24,23 +24,38 @@ impl Vec3 {
     }
 
     pub fn z(&self) -> f64 {
-        f64::sqrt(self.length_squared())
+        self.e[2]
+    }
+    pub fn dot(&self, rhs: &Vec3) -> f64 {
+        self.e[0] * rhs.e[0] + self.e[1] * rhs.e[0] + self.e[0] * rhs.e[0]
+    }
+
+    pub fn cross(&self, rhs: &Vec3) -> Vec3 {
+        Vec3::new(
+            self.y() * rhs.z() - self.z() * rhs.y(),
+            self.z() * rhs.x() - self.x() * rhs.z(),
+            self.x() * rhs.y() - self.y() * rhs.x(),
+        )
+    }
+
+    pub fn unit_vector(&self) -> Vec3 {
+        *self / self.length()
     }
 
     pub fn length_squared(&self) -> f64 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
     }
+
+    pub fn length(&self) -> f64 {
+        f64::sqrt(self.length_squared())
+    }
 }
 
 impl AddAssign for Vec3 {
     fn add_assign(&mut self, rhs: Self) {
-        *self = Vec3 {
-            e: [
-                self.e[0] + rhs.e[0],
-                self.e[1] + rhs.e[1],
-                self.e[2] + rhs.e[2],
-            ],
-        }
+        self.e[0] += rhs.e[0];
+        self.e[1] += rhs.e[1];
+        self.e[2] += rhs.e[2];
     }
 }
 
@@ -78,6 +93,46 @@ impl Neg for Vec3 {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Vec3::new(-self.e[0], -self.e[1], -self.e[2])
+        Vec3::new(-self.x(), -self.y(), -self.z())
+    }
+}
+
+impl Add for Vec3 {
+    type Output = Vec3;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Vec3::new(self.x() + rhs.x(), self.y() + rhs.y(), self.z() + rhs.z())
+    }
+}
+
+impl Sub for Vec3 {
+    type Output = Vec3;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Vec3::new(self.x() - rhs.x(), self.y() - rhs.y(), self.z() - rhs.z())
+    }
+}
+
+impl Mul for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Vec3::new(self.x() * rhs.x(), self.y() * rhs.y(), self.z() * rhs.z())
+    }
+}
+
+impl Mul<f64> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        Vec3::new(self.x() * rhs, self.y() * rhs, self.z() * rhs)
+    }
+}
+
+impl Div<f64> for Vec3 {
+    type Output = Vec3;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Vec3::new(self.x() / rhs, self.y() / rhs, self.z() / rhs)
     }
 }
