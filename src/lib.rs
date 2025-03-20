@@ -1,11 +1,10 @@
+pub mod vec3;
 use std::fmt::Write as FmtWrite;
 use std::io::Write;
 
-use vec3::Vec3;
 
-mod vec3;
-type Color = Vec3;
-pub fn write_color<T: Write>(out: &mut T, pixel_color: &Color) -> Result<usize, std::io::Error> {
+
+pub fn write_color<T: Write>(out: &mut T, pixel_color: &vec3::Color) -> Result<usize, std::io::Error> {
     let mut str = String::new();
 
     let r = pixel_color.x();
