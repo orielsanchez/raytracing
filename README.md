@@ -30,8 +30,8 @@ The code follows the structure and algorithms outlined in the book, with adaptat
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/raytracing-rust.git
-   cd raytracing-rust
+   git clone https://github.com/orielsanchez/raytracing.git
+   cd raytracing
    ```
 
 2. Build the project:
