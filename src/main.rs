@@ -1,3 +1,7 @@
+mod vec3;
+pub use vec3::*;
+
+#[allow(dead_code)]
 fn main() {
     // Image
     const IMAGE_WIDTH: u32 = 256;
