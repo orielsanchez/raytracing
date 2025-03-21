@@ -7,8 +7,9 @@ pub mod vec3;
 use std::fmt::Write as FmtWrite;
 use std::io::Write;
 
+use hittable::{HitRecord, Hittable};
 use ray::Ray;
-use vec3::{Color, Point3, Vec3};
+use vec3::Color;
 
 pub fn write_color<T: Write>(
     out: &mut T,
@@ -29,30 +30,14 @@ pub fn write_color<T: Write>(
     out.write(str.as_bytes())
 }
 
-pub fn ray_color(r: &Ray) -> Color {
-    let t = hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, r);
-    match t > 0.0 {
-        true => {
-            let n = (r.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vector();
-            0.5 * Color::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0)
-        }
-        false => {
+pub fn ray_color<T: Hittable>(r: &Ray, world: &T) -> Color {
+    let t: Option<HitRecord> = world.hit(r, 0.0, f64::MAX);
+    match t {
+        Some(t) => 0.5 * (t.normal + Color::new(1.0, 1.0, 1.0)),
+        None => {
             let unit_direction = r.direction().unit_vector();
             let a = (unit_direction.y() + 1.0) * 0.5;
             (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
         }
-    }
-}
-
-fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> f64 {
-    let oc = *center - r.origin();
-    let a = r.direction().length_squared();
-    let h = r.direction().dot(&oc);
-    let c = oc.length_squared() - radius * radius;
-    let discriminant = h * h - a * c;
-
-    match discriminant < 0.0 {
-        true => -1.0,
-        false => (h - discriminant.sqrt()) / a,
     }
 }

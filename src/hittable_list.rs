@@ -1,13 +1,10 @@
+use crate::hittable::{HitRecord, Hittable};
 use std::sync::Arc;
 
-use crate::hittable::{HitRecord, Hittable};
-
-#[allow(dead_code)]
-struct HittableList {
+pub struct HittableList {
     objects: Vec<Arc<dyn Hittable>>,
 }
 
-#[allow(dead_code)]
 impl HittableList {
     pub fn new() -> Self {
         Self {
@@ -21,6 +18,12 @@ impl HittableList {
 
     pub fn clear(&mut self) {
         self.objects.clear();
+    }
+}
+
+impl Default for HittableList {
+    fn default() -> Self {
+        HittableList::new()
     }
 }
 

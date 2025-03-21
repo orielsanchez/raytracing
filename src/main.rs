@@ -1,8 +1,10 @@
-use std::io;
+use std::{io, sync::Arc};
 
 use raytracing::{
+    hittable_list::HittableList,
     ray::Ray,
     ray_color,
+    sphere::Sphere,
     vec3::{Point3, Vec3},
     write_color,
 };
@@ -12,11 +14,17 @@ fn main() {
     // Image
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: u32 = 1024;
+
     const CANDIDATE_IMAGE_HEIGHT: f64 = IMAGE_WIDTH as f64 / ASPECT_RATIO;
     const IMAGE_HEIGHT: u32 = match CANDIDATE_IMAGE_HEIGHT < 1.0 {
         true => 1,
         false => CANDIDATE_IMAGE_HEIGHT as u32,
     };
+
+    // World
+    let mut world = HittableList::new();
+    world.add(Arc::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
+    world.add(Arc::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
     // Camera
     let focal_length = 1.0;
@@ -44,11 +52,12 @@ fn main() {
     for j in 0..IMAGE_HEIGHT {
         eprintln!("\rScanlines remaining: {} ", (IMAGE_HEIGHT - j));
         for i in 0..IMAGE_WIDTH {
-            let pixel_center =
-                pixel00_loc + (pixel_delta_u * i as f64) + (pixel_delta_v * j as f64);
+            let pixel_center = pixel00_loc
+                + (pixel_delta_u * i as f64)
+                + (pixel_delta_v * (IMAGE_HEIGHT - j - 1) as f64);
             let ray_direction = pixel_center - camera_center;
             let r = Ray::new(camera_center, ray_direction);
-            let pixel_color = ray_color(&r);
+            let pixel_color = ray_color(&r, &world);
             write_color(&mut io::stdout(), &pixel_color).expect("Error writing to output");
         }
     }
