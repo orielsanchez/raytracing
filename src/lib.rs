@@ -1,7 +1,8 @@
-pub mod ray;
-pub mod vec3;
 pub mod hittable;
+pub mod hittable_list;
+pub mod ray;
 pub mod sphere;
+pub mod vec3;
 
 use std::fmt::Write as FmtWrite;
 use std::io::Write;
@@ -29,11 +30,11 @@ pub fn write_color<T: Write>(
 }
 
 pub fn ray_color(r: &Ray) -> Color {
-    let t = hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, &r);
+    let t = hit_sphere(&Point3::new(0.0, 0.0, -1.0), 0.5, r);
     match t > 0.0 {
         true => {
             let n = (r.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vector();
-            return 0.5 * Color::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
+            0.5 * Color::new(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0)
         }
         false => {
             let unit_direction = r.direction().unit_vector();
@@ -48,11 +49,10 @@ fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> f64 {
     let a = r.direction().length_squared();
     let h = r.direction().dot(&oc);
     let c = oc.length_squared() - radius * radius;
-    let discriminant = h*h - a*c;
-    
+    let discriminant = h * h - a * c;
+
     match discriminant < 0.0 {
         true => -1.0,
-        false => (h - discriminant.sqrt()) / a
+        false => (h - discriminant.sqrt()) / a,
     }
-
 }

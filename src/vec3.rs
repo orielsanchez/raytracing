@@ -14,10 +14,6 @@ impl Vec3 {
         Vec3 { e: [e0, e1, e2] }
     }
 
-    pub fn default() -> Self {
-        Vec3::new(0.0, 0.0, 0.0)
-    }
-
     pub fn x(&self) -> f64 {
         self.e[0]
     }
@@ -51,6 +47,12 @@ impl Vec3 {
 
     pub fn length(&self) -> f64 {
         f64::sqrt(self.length_squared())
+    }
+}
+
+impl Default for Vec3 {
+    fn default() -> Self {
+        Vec3::new(0.0, 0.0, 0.0)
     }
 }
 
