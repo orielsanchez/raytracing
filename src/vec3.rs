@@ -1,5 +1,8 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
+use crate::random_double;
+use crate::random_double_range;
+
 pub type Point3 = Vec3;
 pub type Color = Vec3;
 
@@ -43,6 +46,37 @@ impl Vec3 {
 
     pub fn length_squared(&self) -> f64 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
+    }
+
+    pub fn random_vec() -> Vec3 {
+        Vec3::new(random_double(), random_double(), random_double())
+    }
+
+    pub fn random_vec_range(min: f64, max: f64) -> Vec3 {
+        Vec3::new(
+            random_double_range(min, max),
+            random_double_range(min, max),
+            random_double_range(min, max),
+        )
+    }
+
+    pub fn random_unit_vector() -> Vec3 {
+        loop {
+            let p = Vec3::random_vec_range(-1.0, 1.0);
+            let lensq = p.length_squared();
+            match 1.0e-160 < lensq && lensq <= 1.0 {
+                true => return p / lensq.sqrt(),
+                false => (),
+            }
+        }
+    }
+
+    pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+        let on_unit_sphere = Vec3::random_unit_vector();
+        match on_unit_sphere.dot(normal) > 0.0 {
+            true => return on_unit_sphere,
+            false => return -on_unit_sphere,
+        }
     }
 
     pub fn length(&self) -> f64 {
