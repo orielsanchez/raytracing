@@ -9,6 +9,9 @@ pub mod vec3;
 use std::fmt::Write as FmtWrite;
 use std::io::Write;
 
+use interval::Interval;
+use rand::Rng;
+
 pub fn write_color<T: Write>(
     out: &mut T,
     pixel_color: &vec3::Color,
@@ -19,11 +22,18 @@ pub fn write_color<T: Write>(
     let g = pixel_color.y();
     let b = pixel_color.z();
 
-    let rbyte = (255.999 * r) as i32;
-    let gbyte = (255.999 * g) as i32;
-    let bbyte = (255.999 * b) as i32;
+    let intensity = Interval::new(0.000, 0.999);
+    let rbyte = (256.0 * intensity.clamp(r)) as i32;
+    let gbyte = (256.0 * intensity.clamp(g)) as i32;
+    let bbyte = (256.0 * intensity.clamp(b)) as i32;
 
     writeln!(str, "{} {} {}", rbyte, gbyte, bbyte).expect("Error formatting write");
 
     out.write(str.as_bytes())
+}
+
+pub fn random_double() -> f64 {
+    let mut rng: rand::prelude::ThreadRng = rand::rng();
+    let x: f64 = rng.random();
+    x
 }
