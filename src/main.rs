@@ -5,7 +5,7 @@ use raytracing::{
     hittable_list::HittableList,
     material::{Dielectric, Lambertian, Metal},
     sphere::Sphere,
-    vec3::{Color, Point3},
+    vec3::{Color, Point3, Vec3},
 };
 
 #[allow(dead_code)]
@@ -38,7 +38,7 @@ fn main() {
     )));
 
     world.add(Box::new(Sphere::new(
-        Point3::new(1.0, 0.0, -1.0),
+        Point3::new(-1.0, 0.0, -1.0),
         0.4,
         material_bubble,
     )));
@@ -55,5 +55,11 @@ fn main() {
     cam.image_width = 1024;
     cam.samples_per_pixel = 100;
     cam.max_depth = 50;
+
+    cam.vfov = 20.0;
+    cam.lookfrom = Point3::new(-2.0, 2.0, 1.0);
+    cam.lookat = Point3::new(0.0, 0.0, -1.0);
+    cam.vup = Vec3::new(0.0, 1.0, 0.0);
+
     cam.render(&world);
 }
