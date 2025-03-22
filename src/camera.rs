@@ -135,7 +135,7 @@ impl Camera {
         let t: Option<HitRecord> = world.hit(r, Interval::new(0.001, f64::INFINITY));
         match t {
             Some(t) => {
-                let direction = Vec3::random_on_hemisphere(&t.normal);
+                let direction = t.normal + Vec3::random_unit_vector();
                 0.5 * Self::ray_color(&Ray::new(t.p, direction), depth - 1, world)
             }
             None => {
