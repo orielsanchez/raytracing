@@ -1,19 +1,26 @@
+use std::rc::Rc;
+
 use crate::{
     hittable::{HitRecord, Hittable},
     interval::Interval,
-    vec3::{Point3, Vec3},
+    material::{Material, Metal},
+    vec3::{Color, Point3, Vec3},
 };
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
+    mat: Rc<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Self {
-        Sphere { center, radius }
+    pub fn new(center: Point3, radius: f64, mat: Rc<dyn Material>) -> Self {
+        Self {
+            center,
+            radius,
+            mat,
+        }
     }
 
     pub fn center(&self) -> Vec3 {
@@ -27,7 +34,11 @@ impl Sphere {
 
 impl Default for Sphere {
     fn default() -> Self {
-        Sphere::new(Point3::new(0.0, 0.0, 0.0), 1.0)
+        Self {
+            center: Default::default(),
+            radius: 1.0,
+            mat: Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 1.0)),
+        }
     }
 }
 
@@ -59,6 +70,7 @@ impl Hittable for Sphere {
             p: r.at(root),
             normal: Vec3::default(),
             front_face: false,
+            mat: Some(self.mat.clone()),
         };
 
         let outward_normal = (hit_record.p - self.center) / self.radius;

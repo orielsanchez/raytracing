@@ -48,6 +48,11 @@ impl Vec3 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
     }
 
+    pub fn near_zero(&self) -> bool {
+        let s = 1.0e-8;
+        (f64::abs(self.e[0]) < s) && (f64::abs(self.e[1]) < s) && (f64::abs(self.e[2]) < s)
+    }
+
     pub fn random_vec() -> Vec3 {
         Vec3::new(random_double(), random_double(), random_double())
     }
@@ -64,9 +69,8 @@ impl Vec3 {
         loop {
             let p = Vec3::random_vec_range(-1.0, 1.0);
             let lensq = p.length_squared();
-            match 1.0e-160 < lensq && lensq <= 1.0 {
-                true => return p / lensq.sqrt(),
-                false => (),
+            if 1.0e-160 < lensq && lensq <= 1.0 {
+                return p / lensq.sqrt();
             }
         }
     }
@@ -74,9 +78,13 @@ impl Vec3 {
     pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
         let on_unit_sphere = Vec3::random_unit_vector();
         match on_unit_sphere.dot(normal) > 0.0 {
-            true => return on_unit_sphere,
-            false => return -on_unit_sphere,
+            true => on_unit_sphere,
+            false => -on_unit_sphere,
         }
+    }
+
+    pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+        (*v) - 2.0 * v.dot(n) * (*n)
     }
 
     pub fn length(&self) -> f64 {

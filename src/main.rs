@@ -1,16 +1,49 @@
-use std::sync::Arc;
+use std::rc::Rc;
 
-use raytracing::{camera::Camera, hittable_list::HittableList, sphere::Sphere, vec3::Point3};
+use raytracing::{
+    camera::Camera,
+    hittable_list::HittableList,
+    material::{Lambertian, Metal},
+    sphere::Sphere,
+    vec3::{Color, Point3},
+};
 
 #[allow(dead_code)]
 fn main() {
     // World
     let mut world = HittableList::new();
-    world.add(Arc::new(Sphere::new(Point3::new(0.0, 0.0, -1.0), 0.5)));
-    world.add(Arc::new(Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0)));
 
+    let material_ground = Rc::new(Lambertian::new(Color::new(0.8, 0.8, 0.0)));
+    let material_center = Rc::new(Lambertian::new(Color::new(0.7, 0.3, 0.3)));
+    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.1));
+    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 0.1));
+
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, -100.5, -1.0),
+        100.0,
+        material_ground,
+    )));
+
+    world.add(Box::new(Sphere::new(
+        Point3::new(0.0, 0.0, -1.2),
+        0.5,
+        material_center,
+    )));
+
+    world.add(Box::new(Sphere::new(
+        Point3::new(-1.0, 0.0, -1.0),
+        0.5,
+        material_left,
+    )));
+
+    world.add(Box::new(Sphere::new(
+        Point3::new(1.0, 0.0, -1.0),
+        0.5,
+        material_right,
+    )));
+
+    // Camera
     let mut cam = Camera::default();
-
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width = 1024;
     cam.samples_per_pixel = 100;

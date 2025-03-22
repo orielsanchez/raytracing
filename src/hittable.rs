@@ -1,23 +1,28 @@
+use std::rc::Rc;
+
 use crate::{
     interval::Interval,
+    material::Material,
     ray::Ray,
     vec3::{Point3, Vec3},
 };
 
 #[allow(dead_code)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
+    pub mat: Option<Rc<dyn Material>>,
     pub t: f64,
     pub front_face: bool,
 }
 
 impl HitRecord {
-    pub fn new(p: Point3, normal: Vec3, t: f64, front_face: bool) -> Self {
+    pub fn new(p: Point3, normal: Vec3, mat: Rc<dyn Material>, t: f64, front_face: bool) -> Self {
         Self {
             p,
             normal,
+            mat: Some(mat),
             t,
             front_face,
         }
@@ -32,12 +37,6 @@ impl HitRecord {
             true => *outward_normal,
             false => -(*outward_normal),
         }
-    }
-}
-
-impl Default for HitRecord {
-    fn default() -> Self {
-        HitRecord::new(Vec3::default(), Vec3::default(), 0.0, true)
     }
 }
 

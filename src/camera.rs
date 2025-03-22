@@ -129,14 +129,24 @@ impl Camera {
     }
 
     pub fn ray_color<T: Hittable>(r: &Ray, depth: u32, world: &T) -> Color {
-        if depth <= 0 {
+        if depth == 0 {
             return Color::default();
         }
-        let t: Option<HitRecord> = world.hit(r, Interval::new(0.001, f64::INFINITY));
-        match t {
-            Some(t) => {
-                let direction = t.normal + Vec3::random_unit_vector();
-                0.5 * Self::ray_color(&Ray::new(t.p, direction), depth - 1, world)
+        let rec: Option<HitRecord> = world.hit(r, Interval::new(0.001, f64::INFINITY));
+        match rec {
+            Some(rec) => {
+                let mut scattered = Ray::default();
+                let mut attenuation = Color::default();
+
+                match rec
+                    .mat
+                    .as_ref()
+                    .unwrap()
+                    .scatter(r, &rec, &mut attenuation, &mut scattered)
+                {
+                    true => attenuation * Self::ray_color(&scattered, depth - 1, world),
+                    false => Color::default(),
+                }
             }
             None => {
                 let unit_direction = r.direction().unit_vector();
