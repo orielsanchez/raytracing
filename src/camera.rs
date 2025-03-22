@@ -1,5 +1,8 @@
 use std::{f32::consts::PI, f64, io};
 
+use rayon::iter::IntoParallelIterator;
+use rayon::prelude::*;
+
 use crate::{
     hittable::{HitRecord, Hittable},
     interval::Interval,
@@ -117,13 +120,21 @@ impl Camera {
 
         for j in (0..self.image_height).rev() {
             eprintln!("\rScanlines remaining: {} ", j);
-            for i in 0..self.image_width {
-                let mut pixel_color = Color::default();
-                for _sample in 0..self.samples_per_pixel {
-                    let r = self.get_ray(i, j);
-                    pixel_color += Self::ray_color(&r, self.max_depth, world);
-                }
+            let pixel_colors: Vec<_> = (0..self.image_width)
+                .into_par_iter()
+                .map(|i| {
+                    let mut pixel_color = Color::default();
+                    for _ in 0..self.samples_per_pixel {
+                        let u = (i as f64) + random_double() / (self.image_width - 1) as f64;
+                        let v = (j as f64) + random_double() / (self.image_height - 1) as f64;
+                        let r = self.get_ray(u as u32, v as u32);
+                        pixel_color += Self::ray_color(&r, self.max_depth, world);
+                    }
+                    pixel_color
+                })
+                .collect();
 
+            for pixel_color in pixel_colors {
                 write_color(&mut io::stdout(), &(self.pixel_samples_scale * pixel_color))
                     .expect("Error writing to output");
             }
