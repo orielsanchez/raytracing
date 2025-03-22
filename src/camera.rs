@@ -12,7 +12,8 @@ use crate::{
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: u32,
-    pub samples_per_pixel: i32,
+    pub samples_per_pixel: u32,
+    pub max_depth: u32,
     pixel_samples_scale: f64,
     image_height: u32,
     center: Point3,
@@ -27,6 +28,7 @@ impl Default for Camera {
             aspect_ratio: 1.0,
             image_width: 100,
             samples_per_pixel: 10,
+            max_depth: 10,
             image_height: 100,
             center: Default::default(),
             pixel00_loc: Default::default(),
@@ -41,8 +43,9 @@ impl Camera {
     pub fn new(
         aspect_ratio: f64,
         image_width: u32,
-        samples_per_pixel: i32,
+        samples_per_pixel: u32,
         image_height: u32,
+        max_depth: u32,
         center: Point3,
         pixel00_loc: Point3,
         pixel_delta_u: Vec3,
@@ -59,6 +62,7 @@ impl Camera {
             pixel_delta_u,
             pixel_delta_v,
             pixel_samples_scale,
+            max_depth,
         }
     }
 
@@ -72,7 +76,7 @@ impl Camera {
                 let mut pixel_color = Color::default();
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color += Self::ray_color(&r, world);
+                    pixel_color += Self::ray_color(&r, self.max_depth, world);
                 }
 
                 write_color(&mut io::stdout(), &(self.pixel_samples_scale * pixel_color))
@@ -124,12 +128,15 @@ impl Camera {
         Ray::new(ray_origin, ray_direction)
     }
 
-    pub fn ray_color<T: Hittable>(r: &Ray, world: &T) -> Color {
+    pub fn ray_color<T: Hittable>(r: &Ray, depth: u32, world: &T) -> Color {
+        if depth <= 0 {
+            return Color::default();
+        }
         let t: Option<HitRecord> = world.hit(r, Interval::new(0.0, f64::INFINITY));
         match t {
             Some(t) => {
                 let direction = Vec3::random_on_hemisphere(&t.normal);
-                0.5 * Self::ray_color(&Ray::new(t.p, direction), world)
+                0.5 * Self::ray_color(&Ray::new(t.p, direction), depth - 1, world)
             }
             None => {
                 let unit_direction = r.direction().unit_vector();
