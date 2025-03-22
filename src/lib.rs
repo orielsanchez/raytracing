@@ -33,7 +33,9 @@ pub fn write_color<T: Write>(
 }
 
 pub fn random_double() -> f64 {
-    let mut rng: rand::prelude::ThreadRng = rand::rng();
-    let x: f64 = rng.random();
-    x
+    rand::rng().random()
+}
+
+pub fn random_double_range(min: f64, max: f64) -> f64 {
+    min + (max - min) * random_double()
 }
