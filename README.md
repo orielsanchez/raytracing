@@ -1,73 +1,121 @@
 # Ray Tracing in Rust
 
-This is a Rust implementation of the ray tracing project described in the book [*Ray Tracing in One Weekend*](https://raytracing.github.io/books/RayTracingInOneWeekend.html). The goal of this project is to learn about raytracing and getting more comfortable with Rust by porting the original C++ code to Rust.
+[![Rust](https://img.shields.io/badge/rust-1.70%2B-blue.svg)](https://www.rust-lang.org/)
+![License](https://img.shields.io/badge/license-MIT-orange)
 
-## Overview
+A Rust implementation of Peter Shirley's *Ray Tracing in One Weekend* featuring advanced rendering techniques and parallel processing.
 
-The project implements a simple ray tracer that generates a 2D image by simulating the behavior of light rays in a 3D scene. It includes basic features such as:
-
-- Ray-sphere intersection
-- Simple camera model
-- Background rendering
-- Output in PPM image format
-
-The code follows the structure and algorithms outlined in the book, with adaptations to fit Rust's idiomatic style.
+![Example Output](./final_render.png)
 
 ## Features
 
-- **Ray Tracing Basics**: Implements rays, spheres, and a simple camera model.
-- **Image Rendering**: Outputs a PPM image file to standard output.
-- **Rust Idioms**: Uses Rust's type system, error handling, and memory safety features.
+- **Physically-based Rendering**
+  - Lambertian diffuse materials
+  - Metallic reflection with fuzz
+  - Dielectric refraction (glass)
+  - Defocus blur (depth of field)
+- **Optimizations**
+  - Parallel rendering with Rayon
+  - Gamma correction
+  - Anti-aliasing with multi-sampling
+- **Scene Configuration**
+  - Configurable camera (FOV, focus, aspect ratio)
+  - Random scene generation
+  - Hittable object system
+
+## Code Structure
+
+```
+src/
+├── camera.rs       # Camera model and rendering pipeline
+├── hittable.rs     # Hit detection and surface interaction
+├── material.rs     # Material implementations (Lambertian, Metal, Dielectric)
+├── sphere.rs       # Sphere geometry implementation
+├── vec3.rs         # 3D vector/color/point operations
+├── ray.rs          # Ray casting implementation
+└── main.rs         # Scene setup and entry point
+```
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Rust](https://www.rust-lang.org/) installed on your machine.
-- A terminal to run the program.
+- Rust 1.70+
+- Cargo
+- Image viewer that supports PPM format
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/orielsanchez/raytracing.git
-   cd raytracing
-   ```
+```bash
+git clone https://github.com/orielsanchez/raytracing.git
+cd raytracing
+cargo build --release
+```
 
-2. Build the project:
-   ```bash
-   cargo build --release
-   ```
+### Running
 
-### Running the Program
-
-To render the scene and output the image to a file, run:
+Render a sample scene with 500 samples per pixel and depth of field:
 
 ```bash
 cargo run --release > output.ppm
 ```
 
-This will generate a PPM image file named `output.ppm`. You can view this file using any PPM-compatible image viewer.
+Key configuration options (edit `main.rs` to modify):
+- `samples_per_pixel`: Controls anti-aliasing quality
+- `max_depth`: Maximum ray bounce depth
+- `defocus_angle`: Depth of field effect intensity
+- `vfov`: Vertical field of view
 
-### Example Output
+## Technical Highlights
 
-After running the program, you should see an image with a gradient background and a simple sphere rendered in the center.
+- **Parallel Rendering**  
+  Utilizes Rayon's parallel iterators for pixel processing:
+  ```rust
+  (0..self.image_width).into_par_iter().map(|i| {
+      // Pixel processing logic
+  })
+  ```
 
-## Code Structure
+- **Material System**  
+  Polymorphic material handling with trait objects:
+  ```rust
+  pub trait Material: Send + Sync {
+      fn scatter(&self, r_in: &Ray, rec: &HitRecord, 
+                attenuation: &mut Color, scattered: &mut Ray) -> bool;
+  }
+  ```
 
-The project is organized as follows:
+- **Physically Accurate Camera**  
+  Implements depth of field with defocus disk sampling:
+  ```rust
+  fn defocus_disk_sample(&self) -> Point3 {
+      let p = Vec3::random_in_unit_disk();
+      self.center + (p.x() * self.defocus_disk_u) + (p.y() * self.defocus_disk_v)
+  }
+  ```
 
-- `src/main.rs`: The entry point of the program. Contains the main rendering loop and camera setup.
-- `src/ray.rs`: Implements the `Ray` struct and related functionality.
-- `src/vec3.rs`: Defines the `Vec3` struct for 3D vector operations.
-- `src/lib.rs`: Handles color calculations and output.
+## Example Output
 
+The default scene includes:
+- Ground plane with diffuse material
+- 3 large spheres (glass, diffuse, metal)
+- ~400 randomly placed small spheres with varying materials
+
+Expected render time (1024x576, 500 samples):
+- Release build: 2-5 minutes (depending on hardware)
+- Debug build: 10-15 minutes
+
+## Dependencies
+
+- `rayon` for parallel processing
+- `rand` for random number generation
+- No external image dependencies (outputs PPM directly)
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details
 
 ## Acknowledgments
 
-- Inspired by [*Ray Tracing in One Weekend*](https://raytracing.github.io/books/RayTracingInOneWeekend.html) by Peter Shirley.
-- Thanks to the Rust community for providing excellent tools and resources.
+Based on [*Ray Tracing in One Weekend*](https://raytracing.github.io/books/RayTracingInOneWeekend.html)  
+Rust adaptations by Oriel Sanchez
