@@ -1,6 +1,6 @@
 # Ray Tracing in Rust
 
-This is a Rust implementation of the ray tracing project described in the book [*Ray Tracing in One Weekend*](https://raytracing.github.io/books/RayTracingInOneWeekend.html). The goal of this project is to port the original C++ code to Rust, leveraging Rust's safety and performance features.
+This is a Rust implementation of the ray tracing project described in the book [*Ray Tracing in One Weekend*](https://raytracing.github.io/books/RayTracingInOneWeekend.html). The goal of this project is to learn about raytracing and getting more comfortable with Rust by porting the original C++ code to Rust.
 
 ## Overview
 
@@ -62,9 +62,6 @@ The project is organized as follows:
 - `src/vec3.rs`: Defines the `Vec3` struct for 3D vector operations.
 - `src/lib.rs`: Handles color calculations and output.
 
-## Contributing
-
-Contributions are welcome! If you'd like to improve the code, fix bugs, or add new features, please open an issue or submit a pull request.
 
 ## License
 
@@ -74,4 +71,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 - Inspired by [*Ray Tracing in One Weekend*](https://raytracing.github.io/books/RayTracingInOneWeekend.html) by Peter Shirley.
 - Thanks to the Rust community for providing excellent tools and resources.
-rofessional introduction to your project, making it easy for others to understand, use, and contribute.
