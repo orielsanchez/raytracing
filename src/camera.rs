@@ -132,7 +132,7 @@ impl Camera {
         if depth <= 0 {
             return Color::default();
         }
-        let t: Option<HitRecord> = world.hit(r, Interval::new(0.0, f64::INFINITY));
+        let t: Option<HitRecord> = world.hit(r, Interval::new(0.001, f64::INFINITY));
         match t {
             Some(t) => {
                 let direction = Vec3::random_on_hemisphere(&t.normal);
