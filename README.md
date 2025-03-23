@@ -117,5 +117,6 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## Acknowledgments
 
-Based on [*Ray Tracing in One Weekend*](https://raytracing.github.io/books/RayTracingInOneWeekend.html)  
-Rust adaptations by Oriel Sanchez
+Based on [*Ray Tracing in One Weekend*](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
+and [*Ray Tracing Road to Rust*](https://the-ray-tracing-road-to-rust.vercel.app)
+
