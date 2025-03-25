@@ -1,3 +1,13 @@
+//! Camera implementation for the raytracer.
+//!
+//! This module provides a `Camera` struct that handles the generation of rays
+//! for rendering the scene. It supports features like:
+//! - Configurable field of view
+//! - Depth of field
+//! - Anti-aliasing through multiple samples per pixel
+//! - Background color gradient
+//! - Parallel rendering using rayon
+
 use std::{f32::consts::PI, f64, io};
 
 use rayon::iter::IntoParallelIterator;
@@ -12,32 +22,59 @@ use crate::{
     write_color,
 };
 
+/// A camera that generates rays for rendering the scene.
+///
+/// The camera is defined by its position, orientation, and various rendering
+/// parameters. It uses a coordinate system with basis vectors u, v, w to
+/// generate rays through a viewport and into the scene.
 pub struct Camera {
-    pub aspect_ratio: f64,      // Ratio of image width over height
-    pub image_width: u32,       // Rendered image width in pixel count
-    pub samples_per_pixel: u32, // Count of random samples for each pixel
-    pub max_depth: u32,         // Maximum number of ray bounces into scene
-    pub vfov: f64,              // Vertical view angle (field of view)
-    pub lookfrom: Point3,       // Point camera is looking from
-    pub lookat: Point3,         // Point camera is looking at
-    pub vup: Vec3,              // Camera-relative "up" direction
-    pub defocus_angle: f64,     // Variation angle of rays through each pixel
-    pub focus_dist: f64,        // Distance from camera lookfrom point to plane of perfect focus
+    /// Ratio of image width over height
+    pub aspect_ratio: f64,
+    /// Rendered image width in pixel count
+    pub image_width: u32,
+    /// Count of random samples for each pixel
+    pub samples_per_pixel: u32,
+    /// Maximum number of ray bounces into scene
+    pub max_depth: u32,
+    /// Vertical view angle (field of view)
+    pub vfov: f64,
+    /// Point camera is looking from
+    pub lookfrom: Point3,
+    /// Point camera is looking at
+    pub lookat: Point3,
+    /// Camera-relative "up" direction
+    pub vup: Vec3,
+    /// Variation angle of rays through each pixel
+    pub defocus_angle: f64,
+    /// Distance from camera lookfrom point to plane of perfect focus
+    pub focus_dist: f64,
 
-    image_height: u32,        // Rendered image height
-    pixel_samples_scale: f64, // Color scale factor for a sum of pixel samples
-    center: Point3,           // Camera center
-    pixel00_loc: Point3,      // Location of pixel 0, 0
-    pixel_delta_u: Vec3,      // Offset to pixel to the right
-    pixel_delta_v: Vec3,      // Offset to pixel below
-    u: Vec3,                  // Camera frame basis vector right
-    v: Vec3,                  // Camera frame basis vector up
-    w: Vec3,                  // Camera frame basis vector back
-    defocus_disk_u: Vec3,     // Defocus disk horizontal radius
-    defocus_disk_v: Vec3,     // Defocus disk vertical radius
+    /// Rendered image height
+    image_height: u32,
+    /// Color scale factor for a sum of pixel samples
+    pixel_samples_scale: f64,
+    /// Camera center
+    center: Point3,
+    /// Location of pixel 0, 0
+    pixel00_loc: Point3,
+    /// Offset to pixel to the right
+    pixel_delta_u: Vec3,
+    /// Offset to pixel below
+    pixel_delta_v: Vec3,
+    /// Camera frame basis vector right
+    u: Vec3,
+    /// Camera frame basis vector up
+    v: Vec3,
+    /// Camera frame basis vector back
+    w: Vec3,
+    /// Defocus disk horizontal radius
+    defocus_disk_u: Vec3,
+    /// Defocus disk vertical radius
+    defocus_disk_v: Vec3,
 }
 
 impl Default for Camera {
+    /// Creates a default camera with standard parameters.
     fn default() -> Self {
         Self {
             aspect_ratio: 1.0,
@@ -66,6 +103,31 @@ impl Default for Camera {
 }
 
 impl Camera {
+    /// Creates a new camera with the given parameters.
+    ///
+    /// # Arguments
+    ///
+    /// * `aspect_ratio` - Ratio of image width over height
+    /// * `image_width` - Rendered image width in pixels
+    /// * `samples_per_pixel` - Number of random samples per pixel
+    /// * `max_depth` - Maximum number of ray bounces
+    /// * `vfov` - Vertical field of view in degrees
+    /// * `lookfrom` - Camera position
+    /// * `lookat` - Point camera is looking at
+    /// * `vup` - Camera-relative up direction
+    /// * `defocus_angle` - Variation angle of rays through each pixel
+    /// * `focus_dist` - Distance to plane of perfect focus
+    /// * `image_height` - Rendered image height in pixels
+    /// * `pixel_samples_scale` - Color scale factor for pixel samples
+    /// * `center` - Camera center point
+    /// * `pixel00_loc` - Location of pixel 0, 0
+    /// * `pixel_delta_u` - Offset to pixel to the right
+    /// * `pixel_delta_v` - Offset to pixel below
+    /// * `u` - Camera frame basis vector right
+    /// * `v` - Camera frame basis vector up
+    /// * `w` - Camera frame basis vector back
+    /// * `defocus_disk_u` - Defocus disk horizontal radius
+    /// * `defocus_disk_v` - Defocus disk vertical radius
     pub fn new(
         aspect_ratio: f64,
         image_width: u32,
@@ -114,6 +176,19 @@ impl Camera {
         }
     }
 
+    /// Renders the scene to stdout in PPM format.
+    ///
+    /// This method performs the actual rendering of the scene, using
+    /// parallel processing to generate the image. For each pixel, it:
+    /// 1. Generates multiple random samples
+    /// 2. Traces rays through the scene
+    /// 3. Accumulates the color contributions
+    /// 4. Applies gamma correction
+    /// 5. Writes the result to stdout
+    ///
+    /// # Arguments
+    ///
+    /// * `world` - The scene to render
     pub fn render<T: Hittable>(&mut self, world: &T) {
         Self::initialize(self);
         println!("P3\n {0} {1} \n255", self.image_width, self.image_height);
@@ -142,6 +217,14 @@ impl Camera {
         eprintln!("\rDone.");
     }
 
+    /// Initializes the camera's internal state.
+    ///
+    /// This method sets up the camera's coordinate system and calculates
+    /// various parameters needed for ray generation, including:
+    /// - Viewport dimensions
+    /// - Camera basis vectors
+    /// - Pixel deltas
+    /// - Defocus disk parameters
     fn initialize(&mut self) {
         let candidate_image_height = self.image_width as f64 / self.aspect_ratio;
         self.image_height = match candidate_image_height < 1.0 {
@@ -186,6 +269,19 @@ impl Camera {
         self.defocus_disk_v = self.v * defocus_radius;
     }
 
+    /// Generates a ray for a given pixel.
+    ///
+    /// This method constructs a ray from the camera through the specified
+    /// pixel, taking into account depth of field if enabled.
+    ///
+    /// # Arguments
+    ///
+    /// * `i` - The pixel's x coordinate
+    /// * `j` - The pixel's y coordinate
+    ///
+    /// # Returns
+    ///
+    /// A ray from the camera through the pixel
     pub fn get_ray(&self, i: u32, j: u32) -> Ray {
         // Construct a camera ray originating from the defocus disk and directed at a randomly sampled point around the pixel location i,j.
 
@@ -203,6 +299,21 @@ impl Camera {
         Ray::new(ray_origin, ray_direction)
     }
 
+    /// Computes the color of a ray through the scene.
+    ///
+    /// This method recursively traces a ray through the scene, handling
+    /// reflection, refraction, and background color. It implements the
+    /// Monte Carlo path tracing algorithm.
+    ///
+    /// # Arguments
+    ///
+    /// * `r` - The ray to trace
+    /// * `depth` - The current recursion depth
+    /// * `world` - The scene to trace through
+    ///
+    /// # Returns
+    ///
+    /// The color contribution of the ray
     pub fn ray_color<T: Hittable>(r: &Ray, depth: u32, world: &T) -> Color {
         if depth == 0 {
             return Color::default();
@@ -231,10 +342,20 @@ impl Camera {
         }
     }
 
+    /// Generates a random offset within a pixel.
+    ///
+    /// # Returns
+    ///
+    /// A random 2D offset in the range [-0.5, 0.5]
     fn sample_square() -> Vec3 {
         Vec3::new(random_double() - 0.5, random_double() - 0.5, 0.0)
     }
 
+    /// Generates a random point in the camera's defocus disk.
+    ///
+    /// # Returns
+    ///
+    /// A random point within the defocus disk
     fn defocus_disk_sample(&self) -> Point3 {
         // Returns a random point in the camera defocus disk
         let p = Vec3::random_in_unit_disk();
@@ -242,6 +363,15 @@ impl Camera {
     }
 }
 
+/// Converts degrees to radians.
+///
+/// # Arguments
+///
+/// * `vfov` - The angle in degrees
+///
+/// # Returns
+///
+/// The angle in radians
 fn degrees_to_radians(vfov: f64) -> f64 {
     vfov * PI as f64 / 180.0
 }
